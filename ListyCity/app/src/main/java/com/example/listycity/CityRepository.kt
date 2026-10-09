@@ -48,6 +48,16 @@ class CityRepository {
 
     fun updateCity(oldCity: City, updatedCity: City) {
         // Use Firestore to find the document being updated
-       citiesRef.document(oldCity.name).set(updatedCity)
+        // using batching to make sure both delete and write new document happens at the same time
+       db.runBatch { batch ->
+           if (oldCity.name != updatedCity.name) {
+               batch.delete(citiesRef.document(oldCity.name))
+           }
+           batch.set(citiesRef.document(updatedCity.name), updatedCity)
+       }
+    }
+
+    fun deleteCity(city: City) {
+        citiesRef.document(city.name).delete()
     }
 }
